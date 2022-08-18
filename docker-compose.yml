@@ -1,0 +1,17 @@
+version: "3.3"
+
+volumes:
+  data:
+
+services:
+  database:
+    image: postgres:latest
+    container_name: cryptocurrencies_database
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRESQL_DB}
+      - POSTGRES_USER=${POSTGRESQL_USER}
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASS}
+    volumes:
+      - data:/var/lib/postgres

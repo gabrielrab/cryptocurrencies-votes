@@ -1,6 +1,7 @@
 package server
 
 import (
+	"cryptocurrencies-votes/database"
 	"cryptocurrencies-votes/server/routes"
 	"log"
 
@@ -20,6 +21,7 @@ func NewServer() Server{
 }
 
 func (s *Server) Run(){
+	database.DatabaseConnection()
 	router := routes.ServerRoutes(s.server)
 	log.Fatal(router.Run(":"+s.port))
 }
