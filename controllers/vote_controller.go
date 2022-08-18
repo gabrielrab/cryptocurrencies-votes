@@ -10,18 +10,18 @@ import (
 
 func ShowVotes(ctx *gin.Context) {
 	var votes = []models.Vote{
-		{Id: "1", Coin: "BTC", Value: -1},
-		{Id: "2", Coin: "BTC", Value: -1},
-		{Id: "3", Coin: "USDT", Value: 1},
-		{Id: "4", Coin: "KLV", Value: 1},
-		{Id: "5", Coin: "KLV", Value: -1},
-		{Id: "6", Coin: "ETH", Value: 1},
-		{Id: "7", Coin: "USDT", Value: 1},
-		{Id: "8", Coin: "BTC", Value: -1},
-		{Id: "9", Coin: "ETH", Value: -1},
-		{Id: "10", Coin: "KLV", Value: 1},
-		{Id: "11", Coin: "ETH", Value: 1},
-		{Id: "12", Coin: "USDT", Value: 1},
+		{Id: 1, Coin: "BTC", Value: -1},
+		{Id: 2, Coin: "BTC", Value: -1},
+		{Id: 3, Coin: "USDT", Value: 1},
+		{Id: 4, Coin: "KLV", Value: 1},
+		{Id: 5, Coin: "KLV", Value: -1},
+		{Id: 6, Coin: "ETH", Value: 1},
+		{Id: 7, Coin: "USDT", Value: 1},
+		{Id: 8, Coin: "BTC", Value: -1},
+		{Id: 9, Coin: "ETH", Value: -1},
+		{Id: 10, Coin: "KLV", Value: 1},
+		{Id: 11, Coin: "ETH", Value: 1},
+		{Id: 12, Coin: "USDT", Value: 1},
 	}
 
 	ctx.JSON(http.StatusOK, votes)

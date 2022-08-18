@@ -30,7 +30,7 @@ func DatabaseConnection(){
 	RunMigrations(db)
 }
 
-func CloseConn() error {
+func CloseConnection() error {
 	config, err := db.DB()
 	if err != nil {
 		return err
