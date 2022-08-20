@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"cryptocurrencies-votes/database"
 	"cryptocurrencies-votes/models"
 	"net/http"
 	"strings"
@@ -9,22 +10,47 @@ import (
 )
 
 func ShowVotes(ctx *gin.Context) {
-	var votes = []models.Vote{
-		{Id: 1, Coin: "BTC", Value: -1},
-		{Id: 2, Coin: "BTC", Value: -1},
-		{Id: 3, Coin: "USDT", Value: 1},
-		{Id: 4, Coin: "KLV", Value: 1},
-		{Id: 5, Coin: "KLV", Value: -1},
-		{Id: 6, Coin: "ETH", Value: 1},
-		{Id: 7, Coin: "USDT", Value: 1},
-		{Id: 8, Coin: "BTC", Value: -1},
-		{Id: 9, Coin: "ETH", Value: -1},
-		{Id: 10, Coin: "KLV", Value: 1},
-		{Id: 11, Coin: "ETH", Value: 1},
-		{Id: 12, Coin: "USDT", Value: 1},
+	db := database.GetDatabase()
+	var votes []models.Vote
+
+	err := db.Find(&votes).Error
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": false,
+			"message": "Error when show votes",
+		})
 	}
 
 	ctx.JSON(http.StatusOK, votes)
+}
+
+func CalculateVotes(ctx *gin.Context){
+	var calculatedVotes []struct{
+		Code string `json:"code"`
+		Name string `json:"name"`
+		Votes int `json:"votes"`
+	}
+
+	db := database.GetDatabase()
+	err := db.Raw(`
+			select  
+				coins.code, 
+				coins.name,
+				sum(votes.value) as votes
+			from votes
+				inner join coins on votes.coin = coins.code
+			group by coins.code, coins.name`).Scan(&calculatedVotes).Error
+	
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": false,
+			"message": "Error on calculate votes",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, calculatedVotes)
 }
 
 func NewVote(ctx *gin.Context){
@@ -37,6 +63,20 @@ func NewVote(ctx *gin.Context){
 		return
 	}
 
+	db := database.GetDatabase()
+	var coin models.Coin
+
+	err := db.Where(&models.Coin{ Code: strings.ToUpper(ctx.Param("coin")) }).First(&coin).Error
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"status": false,
+			"message": "Coin not found.",
+		})
+		return
+	}
+
+
 	newVote := models.Vote{
 		Coin: strings.ToUpper(ctx.Param("coin")),
 		Value: func () int {
@@ -47,5 +87,17 @@ func NewVote(ctx *gin.Context){
 			}
 		}(),
 	}
-	ctx.JSON(http.StatusOK, newVote)
+
+	
+	err = db.Create(&newVote).Error
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": false,
+			"message": "Error when create vote",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, newVote)
 }
