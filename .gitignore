@@ -1,2 +1,8 @@
 bin/
 .env
+
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
