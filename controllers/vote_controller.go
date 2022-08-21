@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 func ShowVotes(ctx *gin.Context) {
@@ -17,7 +18,7 @@ func ShowVotes(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Error when show votes",
 		})
 	}
@@ -25,11 +26,11 @@ func ShowVotes(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, votes)
 }
 
-func CalculateVotes(ctx *gin.Context){
-	var calculatedVotes []struct{
-		Code string `json:"code"`
-		Name string `json:"name"`
-		Votes int `json:"votes"`
+func CalculateVotes(ctx *gin.Context) {
+	var calculatedVotes []struct {
+		Code  string `json:"code"`
+		Name  string `json:"name"`
+		Votes int    `json:"votes"`
 	}
 
 	db := database.GetDatabase()
@@ -41,10 +42,10 @@ func CalculateVotes(ctx *gin.Context){
 			from votes
 				inner join coins on votes.coin = coins.code
 			group by coins.code, coins.name`).Scan(&calculatedVotes).Error
-	
+
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Error on calculate votes",
 		})
 		return
@@ -53,11 +54,11 @@ func CalculateVotes(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, calculatedVotes)
 }
 
-func NewVote(ctx *gin.Context){
+func NewVote(ctx *gin.Context, ws *websocket.Conn) {
 	voteValue := ctx.Param("value")
-	if(voteValue == "" || (voteValue != "up" && voteValue != "down")){
+	if voteValue == "" || (voteValue != "up" && voteValue != "down") {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Invalid vote value",
 		})
 		return
@@ -66,38 +67,37 @@ func NewVote(ctx *gin.Context){
 	db := database.GetDatabase()
 	var coin models.Coin
 
-	err := db.Where(&models.Coin{ Code: strings.ToUpper(ctx.Param("coin")) }).First(&coin).Error
+	err := db.Where(&models.Coin{Code: strings.ToUpper(ctx.Param("coin"))}).First(&coin).Error
 
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Coin not found.",
 		})
 		return
 	}
 
-
 	newVote := models.Vote{
 		Coin: strings.ToUpper(ctx.Param("coin")),
-		Value: func () int {
-			if (voteValue == "up"){
+		Value: func() int {
+			if voteValue == "up" {
 				return 1
-			} else{
+			} else {
 				return -1
 			}
 		}(),
 	}
 
-	
 	err = db.Create(&newVote).Error
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Error when create vote",
 		})
 		return
 	}
 
+	ws.WriteMessage(websocket.TextMessage, []byte(newVote.Coin))
 	ctx.JSON(http.StatusCreated, newVote)
 }

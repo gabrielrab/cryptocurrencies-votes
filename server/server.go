@@ -3,25 +3,27 @@ package server
 import (
 	"cryptocurrencies-votes/database"
 	"cryptocurrencies-votes/server/routes"
+	"cryptocurrencies-votes/server/socket"
 	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	port string
+	port   string
 	server *gin.Engine
 }
 
-func NewServer() Server{
+func NewServer() Server {
 	return Server{
-		port: "3000",
+		port:   "3000",
 		server: gin.Default(),
 	}
 }
 
-func (s *Server) Run(){
+func (s *Server) Run() {
 	database.DatabaseConnection()
-	router := routes.ServerRoutes(s.server)
-	log.Fatal(router.Run(":"+s.port))
+	websocket := socket.SocketConnection(s.server)
+	router := routes.ServerRoutes(s.server, websocket)
+	log.Fatal(router.Run(":" + s.port))
 }
