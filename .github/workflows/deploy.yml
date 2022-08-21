@@ -1,0 +1,26 @@
+name: Deploy on Digital Ocean
+
+on:
+  push:
+    branches:
+      - feature/ci-cd
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          username: ${{ secrets.SSH_USER }}
+
+          script: |
+            cd cryptocurrencies-votes
+            git pull
+            docker-compose up -d --build
+
+      - name: Finished
+        run: |
+          echo "Finish deployment"
