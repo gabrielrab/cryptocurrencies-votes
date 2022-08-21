@@ -10,6 +10,6 @@ COPY . .
 
 RUN go build -o bin/cryptocurrencies-votes
 
-EXPOSE 3000
+EXPOSE $APP_PORT
 
 CMD [ "bin/cryptocurrencies-votes" ]
