@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ShowCoins(ctx *gin.Context){
+func ShowCoins(ctx *gin.Context) {
 	db := database.GetDatabase()
 	var coins []models.Coin
 
@@ -16,7 +16,7 @@ func ShowCoins(ctx *gin.Context){
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Error when show coins",
 		})
 		return
@@ -25,14 +25,14 @@ func ShowCoins(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, coins)
 }
 
-func NewCoin (ctx *gin.Context){
+func NewCoin(ctx *gin.Context) {
 	db := database.GetDatabase()
 	var coin models.Coin
 
-	err := ctx.ShouldBind(&coin)
+	err := ctx.ShouldBindJSON(&coin)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Error when create coin",
 		})
 		return
@@ -41,7 +41,7 @@ func NewCoin (ctx *gin.Context){
 	err = db.Create(&coin).Error
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status": false,
+			"status":  false,
 			"message": "Error when create coin: " + err.Error(),
 		})
 		return
