@@ -4,7 +4,7 @@ import (
 	"cryptocurrencies-votes/server"
 )
 
-func main(){
+func main() {
 	s := server.NewServer()
 	s.Run()
 }
