@@ -3,10 +3,9 @@
 <img alt="Logo" align="right" src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/apple/325/coin_1fa99.png" width="128" />
 
 ### Description
-API for the purpose of receiving votes from referrals created with cryptocurrencies.
+API for the purpose of receiving votes from referrals created with cryptocurrencies. It is available at: http://159.223.104.144
 
 ### Files Structure
-This API was created following the principles of Clean Architecture and contains the following folder and file structure.
 ```
 ├── Dockerfile
 ├── README.md
@@ -64,3 +63,6 @@ ws.onmessage = (content) => {
 }
 ```
 > If running locally, you can try replacing the socket url following this pattern `ws://localhost:{your_api_port}/ws`
+
+
+Created by @gabrielrab | 2022
