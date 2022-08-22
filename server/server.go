@@ -23,7 +23,7 @@ func NewServer() Server {
 
 func (s *Server) Run() {
 	database.DatabaseConnection()
-	websocket := socket.SocketConnection(s.server)
-	router := routes.ServerRoutes(s.server, websocket)
+	hub := socket.NewHub()
+	router := routes.ServerRoutes(s.server, hub)
 	log.Fatal(router.Run(":" + s.port))
 }

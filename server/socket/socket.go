@@ -1,49 +1,84 @@
 package socket
 
 import (
-	"fmt"
-	"net/http"
+	"sync"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
+type Hub struct {
+	mu               sync.Mutex
+	connectedClients map[*client]struct{}
 }
 
-func SocketConnection(router *gin.Engine) *websocket.Conn {
-	var wsconnection *websocket.Conn
-	router.GET("/ws", func(ctx *gin.Context) {
-		ws, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-		if err != nil {
-			fmt.Println(err)
-			return
+func NewHub() *Hub {
+	return &Hub{
+		mu:               sync.Mutex{},
+		connectedClients: make(map[*client]struct{}),
+	}
+}
+
+func (h *Hub) AddClient(cl *client) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h.connectedClients[cl] = struct{}{}
+}
+
+func (h *Hub) RemoveClient(cl *client) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	delete(h.connectedClients, cl)
+}
+
+func (h *Hub) Send(data interface{}) {
+	h.mu.Lock()
+	clients := h.connectedClients
+	h.mu.Unlock()
+
+	for cl := range clients {
+		if cl.IsAlive() {
+			cl.out <- data
 		}
-		defer ws.Close()
+	}
+}
 
-		wsconnection = ws
+type client struct {
+	conn  *websocket.Conn
+	alive bool
+	hub   *Hub
 
-		// for {
-		// 	mt, message, err := ws.ReadMessage()
-		// 	if err != nil {
-		// 		fmt.Println(err)
-		// 		break
-		// 	}
+	out chan interface{}
+}
 
-		// 	if string(message) == "ping" {
-		// 		message = []byte("pong")
-		// 	}
+func NewClient(conn *websocket.Conn, hub *Hub) *client {
+	return &client{
+		conn:  conn,
+		alive: true,
+		hub:   hub,
+		out:   make(chan interface{}, 10),
+	}
+}
 
-		// 	err = ws.WriteMessage(mt, message)
+func (c *client) IsAlive() bool {
+	return c.alive
+}
 
-		// 	if err != nil {
-		// 		fmt.Println(err)
-		// 		break
-		// 	}
-		// }
-	})
-	return wsconnection
+func (c *client) Watch() {
+	defer func() {
+		c.alive = false
+		c.conn.Close()
+		c.hub.RemoveClient(c)
+	}()
+
+	for {
+		select {
+		case m := <-c.out:
+			err := c.conn.WriteJSON(m)
+			if err != nil {
+				return
+			}
+		}
+	}
 }

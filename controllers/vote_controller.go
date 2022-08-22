@@ -3,11 +3,11 @@ package controllers
 import (
 	"cryptocurrencies-votes/database"
 	"cryptocurrencies-votes/models"
+	"cryptocurrencies-votes/server/socket"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 )
 
 func ShowVotes(ctx *gin.Context) {
@@ -54,7 +54,7 @@ func CalculateVotes(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, calculatedVotes)
 }
 
-func NewVote(ctx *gin.Context, ws *websocket.Conn) {
+func NewVote(ctx *gin.Context, hub *socket.Hub) {
 	voteValue := ctx.Param("value")
 	if voteValue == "" || (voteValue != "up" && voteValue != "down") {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -98,6 +98,6 @@ func NewVote(ctx *gin.Context, ws *websocket.Conn) {
 		return
 	}
 
-	ws.WriteMessage(websocket.TextMessage, []byte(newVote.Coin))
+	hub.Send(newVote)
 	ctx.JSON(http.StatusCreated, newVote)
 }
