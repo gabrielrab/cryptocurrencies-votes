@@ -3,7 +3,7 @@ name: Deploy on Digital Ocean
 on:
   push:
     branches:
-      - feature/ci-cd
+      - main
 
 jobs:
   deploy:
