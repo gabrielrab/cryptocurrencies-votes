@@ -5,6 +5,7 @@ import (
 	"cryptocurrencies-votes/server/routes"
 	"cryptocurrencies-votes/server/socket"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,7 @@ type Server struct {
 
 func NewServer() Server {
 	return Server{
-		port:   "3000",
+		port:   os.Getenv("APP_PORT"),
 		server: gin.Default(),
 	}
 }
